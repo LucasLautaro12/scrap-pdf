@@ -1,0 +1,36 @@
+# Entornos virtuales
+venv/
+.env/
+
+# PyInstaller
+dist/
+build/
+__pycache__/
+*.spec
+
+# Archivos temporales
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.tmp
+*.bak
+*.swp
+.DS_Store
+Thumbs.db
+
+# Configuración de editores
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Archivos generados
+*.exe
+*.zip
+*.tar.gz
+
+# Archivos de pruebas locales
+test_*.py
+*.pdf
+/resources/*.pdf
