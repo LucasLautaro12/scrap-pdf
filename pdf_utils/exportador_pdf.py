@@ -3,6 +3,11 @@ from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import mm
+from reportlab.platypus import Image
+
+import os
+
+
 
 
 def generar_pdf_comparativo(ruta_salida, productos_anterior, productos_actual, total_anterior, total_actual,
@@ -12,17 +17,34 @@ def generar_pdf_comparativo(ruta_salida, productos_anterior, productos_actual, t
     elementos = []
     estilos = getSampleStyleSheet()
     
-    # Encabezado con datos de cliente
-    encabezado = [
-        Paragraph(f"<b>CLIENTE:</b> {cliente}", estilos["Normal"]),
-        Paragraph(f"<b>OBRA:</b> {obra}", estilos["Normal"]),
-        Paragraph(f"<b>TICKET VEXAR:</b> {ticket}", estilos["Normal"]),
-    ]
-    for parrafo in encabezado:
-        elementos.append(parrafo)
-        elementos.append(Spacer(1, 4))
+    texto_izquierda = []
+    texto_izquierda.append(Paragraph(f"<b>CLIENTE:</b> {cliente}", estilos["Normal"]))
+    texto_izquierda.append(Paragraph(f"<b>OBRA:</b> {obra}", estilos["Normal"]))
+    texto_izquierda.append(Paragraph(f"<b>TICKET VEXAR:</b> {ticket}", estilos["Normal"]))
 
-    elementos.append(Spacer(1, 8))  # espacio antes del título
+    ruta_logo = os.path.join(os.path.dirname(__file__), "../resources/LogoSinFondo1.png")
+
+    
+    # 👉 Imagen (derecha)
+    if ruta_logo:
+        logo = Image(ruta_logo, width=80, height=40)  # ajustá tamaño si hace falta
+    else:
+        logo = Paragraph("", estilos["Normal"])
+
+    # 👉 Tabla de dos columnas
+    encabezado_tabla = Table(
+        [[texto_izquierda, logo]],
+        colWidths=[400, 130]  # ajustá si usás una hoja más ancha o más texto
+    )
+    encabezado_tabla.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('ALIGN', (1, 0), (1, 0), 'RIGHT'),
+    ]))
+
+    elementos.append(encabezado_tabla)
+    elementos.append(Spacer(1, 8))
+    elementos.append(Paragraph("Comparativa de Presupuestos", estilos['Title']))
+    elementos.append(Spacer(1, 12))
     
     # Cabecera combinada
     data = [[
