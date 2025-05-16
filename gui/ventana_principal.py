@@ -23,12 +23,15 @@ def cargar_pdfs(campo_texto):
                         texto += f"   Cantidad: {prod['cantidad']}\n"
                         texto += f"   Ancho: {prod['ancho']}\n"
                         texto += f"   Alto: {prod['alto']}\n"
-                        texto += f"   Precio x Unidad: ${prod['precio_unitario']:.2f}\n\n"
+                        texto += f"   Precio x Unidad: ${prod['precio_unitario']:.2f}\n"
+                        texto += f"   Precio Total: ${prod['total_producto']:.2f}\n\n"
                         campo_texto.insert(tk.END, texto)
                 campo_texto.insert(tk.END, "\n\n")
 
+
             except Exception as e:
                 campo_texto.insert(tk.END, f"Error procesando {nombre_archivo}:\n{str(e)}\n\n")
+        campo_texto.insert(tk.END, f"💰 TOTAL PRESUPUESTO GENERAL: ${prod['total_presupuesto']:,.2f}\n")
 
 def iniciar_app():
     ventana = tk.Tk()

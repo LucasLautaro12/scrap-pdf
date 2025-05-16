@@ -25,18 +25,13 @@ def procesar_precio(texto_precio):
         return None
 
 def extraer_datos_pdf(ruta_pdf):
+    total_presupuesto=0
     productos = []
 
     with pdfplumber.open(ruta_pdf) as pdf:
         for pagina in pdf.pages[1:]:
             texto = pagina.extract_text()
-            """ print("Leyendo página:", pagina.page_number)
-            if texto:
-                print("Texto extraído:\n", texto[:1000])
-            else:
-                print("⚠️ No se extrajo texto en esta página.")
-                continue """
-
+            
             # Buscamos líneas con: TIPOVALOR CANTIDAD MEDIDA (ANCHO x ALTO) PRECIO_UNIT TOTAL
             patron = re.compile(
                 r"([A-Z]+\d+)\s+(\d+)\s+(\d+)\s*[xX]\s*(\d+)\s+([\d.,]+)\s+[\d.,]+"
@@ -48,6 +43,10 @@ def extraer_datos_pdf(ruta_pdf):
                 ancho = int(match.group(3))
                 alto = int(match.group(4))
                 precio_unitario = procesar_precio(match.group(5))
+                total_producto = (
+                    precio_unitario * cantidad if precio_unitario is not None and cantidad is not None else None
+                )
+                total_presupuesto += total_producto
 
                 productos.append({
                     "tipologia": tipologia,
@@ -55,6 +54,8 @@ def extraer_datos_pdf(ruta_pdf):
                     "ancho": ancho,
                     "alto": alto,
                     "precio_unitario": precio_unitario,
+                    "total_producto": total_producto,
+                    "total_presupuesto": total_presupuesto,
                 })
 
     return productos
