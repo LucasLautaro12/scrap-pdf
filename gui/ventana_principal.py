@@ -25,12 +25,12 @@ def cargar_dos_pdfs(campo_texto):
         return
 
     # 🟡 Sección 1: Anterior
-    campo_texto.insert(tk.END, f"📄 PRESUPUESTO ANTERIOR: {nombre_anterior}\n")
+    campo_texto.insert(tk.END, f"PRESUPUESTO ANTERIOR: {nombre_anterior}\n")
     campo_texto.insert(tk.END, "-" * 70 + "\n")
     total_anterior = 0
 
     if not productos_anterior:
-        campo_texto.insert(tk.END, "⚠️ No se encontraron productos en el PDF anterior.\n\n")
+        campo_texto.insert(tk.END, "No se encontraron productos en el PDF anterior.\n\n")
     else:
         for i, prod in enumerate(productos_anterior, 1):
             texto = f"{i}. Tipología: {prod['tipologia']}\n"
@@ -44,15 +44,15 @@ def cargar_dos_pdfs(campo_texto):
             if prod['total_producto']:
                 total_anterior += prod['total_producto']
 
-    campo_texto.insert(tk.END, f"🧮 Total Anterior: ${total_anterior:,.2f}\n\n\n")
+    campo_texto.insert(tk.END, f"Total Anterior: ${total_anterior:,.2f}\n\n\n")
 
     # 🟢 Sección 2: Actual
-    campo_texto.insert(tk.END, f"📄 PRESUPUESTO ACTUAL: {nombre_actual}\n")
+    campo_texto.insert(tk.END, f"PRESUPUESTO ACTUAL: {nombre_actual}\n")
     campo_texto.insert(tk.END, "-" * 70 + "\n")
     total_actual = 0
 
     if not productos_actual:
-        campo_texto.insert(tk.END, "⚠️ No se encontraron productos en el PDF actual.\n\n")
+        campo_texto.insert(tk.END, "No se encontraron productos en el PDF actual.\n\n")
     else:
         for i, prod in enumerate(productos_actual, 1):
             texto = f"{i}. Tipología: {prod['tipologia']}\n"
@@ -66,16 +66,16 @@ def cargar_dos_pdfs(campo_texto):
             if prod['total_producto']:
                 total_actual += prod['total_producto']
 
-    campo_texto.insert(tk.END, f"🧮 Total Actual: ${total_actual:,.2f}\n\n")
+    campo_texto.insert(tk.END, f"Total Actual: ${total_actual:,.2f}\n\n")
 
     # 💰 Comparación final
     diferencia = total_actual - total_anterior
     campo_texto.insert(tk.END, "=" * 70 + "\n")
     campo_texto.insert(
-        tk.END,
-        f"💰 DIFERENCIA TOTAL: {'🔺 Aumentó' if diferencia > 0 else '🔻 Disminuyó' if diferencia < 0 else '✅ Sin cambios'} "
-        f"${abs(diferencia):,.2f}\n"
+    tk.END,
+    f"DIFERENCIA TOTAL: {'El cliente debe pagar $' + format(abs(diferencia), ',.2f') if diferencia > 0 else ' A favor del cliente $' + format(abs(diferencia), ',.2f') if diferencia < 0 else ' Sin cambios de monto'}\n"
     )
+
 
 def iniciar_app():
     ventana = tk.Tk()
