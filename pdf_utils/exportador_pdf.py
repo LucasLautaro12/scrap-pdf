@@ -2,6 +2,8 @@ from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import mm
+
 
 def generar_pdf_comparativo(ruta_salida, productos_anterior, productos_actual, total_anterior, total_actual):
     doc = SimpleDocTemplate(ruta_salida, pagesize=landscape(A4), rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
@@ -14,9 +16,11 @@ def generar_pdf_comparativo(ruta_salida, productos_anterior, productos_actual, t
     # Cabecera combinada
     data = [[
         "Tipología", "Cantidad", "Ancho", "Alto", "Precio x U (Ant.)", "Total Ant.",
+        "",  # Separador visual
         "Tipología", "Cantidad", "Ancho", "Alto", "Precio x U (Act.)", "Total Act.",
         "Variación"
     ]]
+
 
     # Mapeamos productos por tipología
     productos_dict = {p['tipologia']: p for p in productos_anterior}
@@ -45,18 +49,44 @@ def generar_pdf_comparativo(ruta_salida, productos_anterior, productos_actual, t
 
         data.append([
             tip, cant_ant, ancho_ant, alto_ant, f"${pxu_ant:,.2f}", f"${total_ant:,.2f}",
+            "",  # Separador visual
             tip, cant_act, ancho_act, alto_act, f"${pxu_act:,.2f}", f"${total_act:,.2f}",
             f"${variacion:,.2f}"
         ])
 
 
-    tabla = Table(data, colWidths=[65, 50, 50, 50, 85, 85, 65, 50, 50, 50, 85, 85, 90])
+
+    tabla = Table(data, colWidths=[
+        60, 45, 45, 45, 80, 80,
+        5,   # separador
+        60, 45, 45, 45, 80, 80,
+        80   # variación
+    ])
 
     tabla.setStyle(TableStyle([
-    ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#cccccc")),
-    ('GRID', (0, 0), (-1, -1), 0.4, colors.black),
-    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        # Cabecera
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 9),
+        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+
+        # Fondos diferenciados
+        ('BACKGROUND', (0, 0), (5, 0), colors.HexColor("#d0e1f9")),
+        ('BACKGROUND', (7, 0), (12, 0), colors.HexColor("#d2f8d2")),
+        ('BACKGROUND', (13, 0), (13, 0), colors.HexColor("#fff4a3")),
+
+        # Columna separadora
+        ('BACKGROUND', (6, 0), (6, -1), colors.lightgrey),  # separador visual
+
+        # Texto general
+        ('FONTSIZE', (0, 1), (-1, -1), 8),
+        ('ALIGN', (0, 1), (-1, -1), 'CENTER'),
+
+        # Bordes
+        ('GRID', (0, 0), (-1, -1), 0.3, colors.black),
+
+        # Espaciado interno
+        ('LEFTPADDING', (0, 0), (-1, -1), 4),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 4),
     ]))
 
     elementos.append(tabla)
@@ -64,20 +94,27 @@ def generar_pdf_comparativo(ruta_salida, productos_anterior, productos_actual, t
 
     # 💡 Resumen final
     diferencia = total_actual - total_anterior
-    resumen = [
-        f"<b>PRESUPUESTO CERRADO:</b> ${total_anterior:,.2f} — SALDO A FAVOR CLIENTE",
-        f"<b>PRESUPUESTO MEDIDAS RELEVADAS EN OBRA:</b> ${total_actual:,.2f} — SALDO NUEVOS PRESUPUESTOS",
+    resumen_data = [
+        ["PRESUPUESTO CERRADO (SALDO A FAVOR CLIENTE):", f"${total_anterior:,.2f}"],
+        ["PRESUPUESTO MEDIDAS RELEVADAS EN OBRA (SALDO NUEVOS PRESUPUESTOS):", f"${total_actual:,.2f}"],
     ]
 
     if diferencia > 0:
-        resumen.append(f"<b>A PAGAR POR ADICIONALES/CAMBIOS:</b> ${abs(diferencia):,.2f}")
+        resumen_data.append(["A PAGAR POR ADICIONALES/CAMBIOS:", f"${abs(diferencia):,.2f}"])
     elif diferencia < 0:
-        resumen.append(f"<b>A FAVOR DEL CLIENTE POR CAMBIOS:</b> ${abs(diferencia):,.2f}")
+        resumen_data.append(["A FAVOR POR ADICIONALES/CAMBIOS:", f"${abs(diferencia):,.2f}"])
     else:
-        resumen.append("<b>SIN CAMBIOS EN MONTO TOTAL</b>")
+        resumen_data.append(["SIN CAMBIOS EN MONTO TOTAL", ""])
 
-    for r in resumen:
-        elementos.append(Paragraph(r, estilos["Normal"]))
-        elementos.append(Spacer(1, 6))
+    tabla_resumen = Table(resumen_data, colWidths=[200*mm, 80*mm])
+    tabla_resumen.setStyle(TableStyle([
+        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+    ]))
+    elementos.append(Spacer(1, 20))
+    elementos.append(tabla_resumen)
 
     doc.build(elementos)
