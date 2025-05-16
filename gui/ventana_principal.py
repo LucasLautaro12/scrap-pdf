@@ -5,6 +5,7 @@ from pdf_utils.exportador_pdf import generar_pdf_comparativo
 from tkinter import filedialog
 import os
 from gui.componentes.tabla_productos import TablaProductos
+from tkinter import simpledialog
 
 # app/gui/ventana_principal.py
 class ComparadorPDF:
@@ -87,6 +88,15 @@ class ComparadorPDF:
             messagebox.showwarning("Advertencia", "Cargá ambos PDFs antes de exportar.")
             return
 
+        # Pedir datos al usuario
+        cliente = simpledialog.askstring("Cliente", "Ingrese el nombre del cliente:")
+        obra = simpledialog.askstring("Obra", "Ingrese el nombre de la obra:")
+        ticket = simpledialog.askstring("Ticket Vexar", "Ingrese el número de ticket:")
+
+        if not cliente or not obra or not ticket:
+            messagebox.showwarning("Faltan datos", "Debe ingresar Cliente, Obra y Ticket.")
+            return
+
         ruta_salida = filedialog.asksaveasfilename(defaultextension=".pdf", filetypes=[("PDF", "*.pdf")])
         if ruta_salida:
             try:
@@ -95,7 +105,10 @@ class ComparadorPDF:
                     self.productos_anterior,
                     self.productos_actual,
                     self.total_anterior,
-                    self.total_actual
+                    self.total_actual,
+                    cliente=cliente,
+                    obra=obra,
+                    ticket=ticket
                 )
                 messagebox.showinfo("Éxito", f"PDF generado en:\n{ruta_salida}")
             except Exception as e:

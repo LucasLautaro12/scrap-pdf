@@ -5,14 +5,25 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import mm
 
 
-def generar_pdf_comparativo(ruta_salida, productos_anterior, productos_actual, total_anterior, total_actual):
-    doc = SimpleDocTemplate(ruta_salida, pagesize=landscape(A4), rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
+def generar_pdf_comparativo(ruta_salida, productos_anterior, productos_actual, total_anterior, total_actual,
+                            cliente="", obra="", ticket=""):
+
+    doc = SimpleDocTemplate(ruta_salida, pagesize=landscape(A4), rightMargin=10, leftMargin=10, topMargin=10, bottomMargin=10)
     elementos = []
     estilos = getSampleStyleSheet()
+    
+    # Encabezado con datos de cliente
+    encabezado = [
+        Paragraph(f"<b>CLIENTE:</b> {cliente}", estilos["Normal"]),
+        Paragraph(f"<b>OBRA:</b> {obra}", estilos["Normal"]),
+        Paragraph(f"<b>TICKET VEXAR:</b> {ticket}", estilos["Normal"]),
+    ]
+    for parrafo in encabezado:
+        elementos.append(parrafo)
+        elementos.append(Spacer(1, 4))
 
-    elementos.append(Paragraph("📊 Comparativa de Presupuestos", estilos['Title']))
-    elementos.append(Spacer(1, 12))
-
+    elementos.append(Spacer(1, 8))  # espacio antes del título
+    
     # Cabecera combinada
     data = [[
         "Tipología", "Cantidad", "Ancho", "Alto", "Precio x U (Ant.)", "Total Ant.",
@@ -57,16 +68,16 @@ def generar_pdf_comparativo(ruta_salida, productos_anterior, productos_actual, t
 
 
     tabla = Table(data, colWidths=[
-        60, 45, 45, 45, 80, 80,
+        55, 40, 40, 40, 70, 70,
         5,   # separador
-        60, 45, 45, 45, 80, 80,
-        80   # variación
-    ])
+        55, 40, 40, 40, 70, 70,
+        75   # variación
+    ], repeatRows=1, splitByRow=0)
 
     tabla.setStyle(TableStyle([
         # Cabecera
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 9),
+        ('FONTSIZE', (0, 0), (-1, 0), 7),
         ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
 
         # Fondos diferenciados
@@ -90,7 +101,7 @@ def generar_pdf_comparativo(ruta_salida, productos_anterior, productos_actual, t
     ]))
 
     elementos.append(tabla)
-    elementos.append(Spacer(1, 30))
+    elementos.append(Spacer(1, 6))
 
     # 💡 Resumen final
     diferencia = total_actual - total_anterior
