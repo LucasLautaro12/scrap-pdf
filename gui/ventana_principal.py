@@ -1,7 +1,8 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
-from tkinter import ttk
 from pdf_utils.extractor import extraer_datos_pdf
+from pdf_utils.exportador_pdf import generar_pdf_comparativo
+from tkinter import filedialog
 import os
 from gui.componentes.tabla_productos import TablaProductos
 
@@ -43,6 +44,10 @@ class ComparadorPDF:
         self.lbl_diferencia = tk.Label(self.root, text="DIFERENCIA TOTAL: ", font=("Arial", 12, "bold"))
         self.lbl_diferencia.pack(pady=10)
 
+        self.btn_exportar = tk.Button(self.root, text="Exportar a PDF", command=self.exportar_pdf)
+        self.btn_exportar.pack(pady=10)
+
+
     def cargar_pdf_anterior(self):
         ruta = filedialog.askopenfilename(filetypes=[("PDF files", "*.pdf")])
         if ruta:
@@ -77,6 +82,24 @@ class ComparadorPDF:
             texto = f"DIFERENCIA TOTAL: ✅ Sin cambios de monto"
         self.lbl_diferencia.config(text=texto)
 
+    def exportar_pdf(self):
+        if not self.productos_actual or not self.productos_anterior:
+            messagebox.showwarning("Advertencia", "Cargá ambos PDFs antes de exportar.")
+            return
+
+        ruta_salida = filedialog.asksaveasfilename(defaultextension=".pdf", filetypes=[("PDF", "*.pdf")])
+        if ruta_salida:
+            try:
+                generar_pdf_comparativo(
+                    ruta_salida,
+                    self.productos_anterior,
+                    self.productos_actual,
+                    self.total_anterior,
+                    self.total_actual
+                )
+                messagebox.showinfo("Éxito", f"PDF generado en:\n{ruta_salida}")
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo generar el PDF:\n{e}")
 
 def iniciar_app():
     root = tk.Tk()
