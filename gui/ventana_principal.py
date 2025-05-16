@@ -1,94 +1,84 @@
 import tkinter as tk
-from tkinter import filedialog, messagebox, scrolledtext
+from tkinter import filedialog, messagebox
+from tkinter import ttk
 from pdf_utils.extractor import extraer_datos_pdf
 import os
+from gui.componentes.tabla_productos import TablaProductos
 
-def cargar_dos_pdfs(campo_texto):
-    rutas_pdf = filedialog.askopenfilenames(filetypes=[("Archivos PDF", "*.pdf")])
+# app/gui/ventana_principal.py
+class ComparadorPDF:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Comparador de Presupuestos PDF")
+        self.root.geometry("1000x700")
 
-    if not rutas_pdf or len(rutas_pdf) != 2:
-        messagebox.showwarning("Atención", "Debes seleccionar exactamente 2 archivos PDF: uno anterior y uno actual.")
-        return
+        self.total_anterior = 0
+        self.total_actual = 0
+        self.productos_anterior = []
+        self.productos_actual = []
 
-    campo_texto.delete("1.0", tk.END)
+        self.build_ui()
 
-    # Extraemos rutas y nombres
-    ruta_anterior, ruta_actual = rutas_pdf
-    nombre_anterior = os.path.basename(ruta_anterior)
-    nombre_actual = os.path.basename(ruta_actual)
+    def build_ui(self):
+        frame_main = tk.Frame(self.root)
+        frame_main.pack(pady=10, fill=tk.BOTH, expand=True)
 
-    try:
-        productos_anterior = extraer_datos_pdf(ruta_anterior)
-        productos_actual = extraer_datos_pdf(ruta_actual)
-    except Exception as e:
-        messagebox.showerror("Error", f"Error procesando uno de los archivos:\n{str(e)}")
-        return
+        frame_izq = tk.LabelFrame(frame_main, text="PRESUPUESTO ANTERIOR", padx=10, pady=10)
+        frame_der = tk.LabelFrame(frame_main, text="PRESUPUESTO ACTUAL", padx=10, pady=10)
+        frame_izq.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=10)
+        frame_der.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=10)
 
-    # 🟡 Sección 1: Anterior
-    campo_texto.insert(tk.END, f"PRESUPUESTO ANTERIOR: {nombre_anterior}\n")
-    campo_texto.insert(tk.END, "-" * 70 + "\n")
-    total_anterior = 0
+        self.btn_anterior = tk.Button(frame_izq, text="Cargar PDF Anterior", command=self.cargar_pdf_anterior)
+        self.btn_anterior.pack(pady=5)
 
-    if not productos_anterior:
-        campo_texto.insert(tk.END, "No se encontraron productos en el PDF anterior.\n\n")
-    else:
-        for i, prod in enumerate(productos_anterior, 1):
-            texto = f"{i}. Tipología: {prod['tipologia']}\n"
-            texto += f"   Cantidad: {prod['cantidad']}\n"
-            texto += f"   Ancho: {prod['ancho']}\n"
-            texto += f"   Alto: {prod['alto']}\n"
-            texto += f"   Precio x Unidad: ${prod['precio_unitario']:.2f}\n"
-            texto += f"   Precio Total: ${prod['total_producto']:.2f}\n\n"
-            campo_texto.insert(tk.END, texto)
+        self.tree_anterior = TablaProductos(frame_izq, height=25)
+        self.tree_anterior.pack(fill=tk.BOTH, expand=True)
 
-            if prod['total_producto']:
-                total_anterior += prod['total_producto']
+        self.btn_actual = tk.Button(frame_der, text="Cargar PDF Actual", command=self.cargar_pdf_actual)
+        self.btn_actual.pack(pady=5)
 
-    campo_texto.insert(tk.END, f"Total Anterior: ${total_anterior:,.2f}\n\n\n")
+        self.tree_actual = TablaProductos(frame_der, height=25)
+        self.tree_actual.pack(fill=tk.BOTH, expand=True)
 
-    # 🟢 Sección 2: Actual
-    campo_texto.insert(tk.END, f"PRESUPUESTO ACTUAL: {nombre_actual}\n")
-    campo_texto.insert(tk.END, "-" * 70 + "\n")
-    total_actual = 0
+        self.lbl_diferencia = tk.Label(self.root, text="DIFERENCIA TOTAL: ", font=("Arial", 12, "bold"))
+        self.lbl_diferencia.pack(pady=10)
 
-    if not productos_actual:
-        campo_texto.insert(tk.END, "No se encontraron productos en el PDF actual.\n\n")
-    else:
-        for i, prod in enumerate(productos_actual, 1):
-            texto = f"{i}. Tipología: {prod['tipologia']}\n"
-            texto += f"   Cantidad: {prod['cantidad']}\n"
-            texto += f"   Ancho: {prod['ancho']}\n"
-            texto += f"   Alto: {prod['alto']}\n"
-            texto += f"   Precio x Unidad: ${prod['precio_unitario']:.2f}\n"
-            texto += f"   Precio Total: ${prod['total_producto']:.2f}\n\n"
-            campo_texto.insert(tk.END, texto)
+    def cargar_pdf_anterior(self):
+        ruta = filedialog.askopenfilename(filetypes=[("PDF files", "*.pdf")])
+        if ruta:
+            try:
+                self.productos_anterior = extraer_datos_pdf(ruta)
+                self.total_anterior = self.tree_anterior.cargar_productos(self.productos_anterior)
+            except Exception as e:
+                messagebox.showerror("Error", f"Ocurrió un error con el PDF anterior:\n{str(e)}")
+            self.actualizar_diferencia()
 
-            if prod['total_producto']:
-                total_actual += prod['total_producto']
+    def cargar_pdf_actual(self):
+        ruta = filedialog.askopenfilename(filetypes=[("PDF files", "*.pdf")])
+        if ruta:
+            try:
+                self.productos_actual = extraer_datos_pdf(ruta)
+                self.total_actual = self.tree_actual.cargar_productos(self.productos_actual)
+            except Exception as e:
+                messagebox.showerror("Error", f"Ocurrió un error con el PDF actual:\n{str(e)}")
+            self.actualizar_diferencia()
 
-    campo_texto.insert(tk.END, f"Total Actual: ${total_actual:,.2f}\n\n")
+    def actualizar_diferencia(self):
+        if self.total_anterior == 0 and self.total_actual == 0:
+            self.lbl_diferencia.config(text="DIFERENCIA TOTAL: Esperando archivos...")
+            return
 
-    # 💰 Comparación final
-    diferencia = total_actual - total_anterior
-    campo_texto.insert(tk.END, "=" * 70 + "\n")
-    campo_texto.insert(
-    tk.END,
-    f"DIFERENCIA TOTAL: {'El cliente debe pagar $' + format(abs(diferencia), ',.2f') if diferencia > 0 else ' A favor del cliente $' + format(abs(diferencia), ',.2f') if diferencia < 0 else ' Sin cambios de monto'}\n"
-    )
+        diferencia = self.total_actual - self.total_anterior
+        if diferencia > 0:
+            texto = f"DIFERENCIA TOTAL: 🔺 El cliente debe pagar ${abs(diferencia):,.2f}"
+        elif diferencia < 0:
+            texto = f"DIFERENCIA TOTAL: 🔻 A favor del cliente ${abs(diferencia):,.2f}"
+        else:
+            texto = f"DIFERENCIA TOTAL: ✅ Sin cambios de monto"
+        self.lbl_diferencia.config(text=texto)
 
 
 def iniciar_app():
-    ventana = tk.Tk()
-    ventana.title("Comparador de Presupuestos PDF")
-    ventana.geometry("800x650")
-
-    frame_botones = tk.Frame(ventana)
-    frame_botones.pack(pady=10)
-
-    boton_cargar = tk.Button(frame_botones, text="Cargar 2 PDFs (anterior y actual)", command=lambda: cargar_dos_pdfs(campo_texto))
-    boton_cargar.pack()
-
-    campo_texto = scrolledtext.ScrolledText(ventana, wrap=tk.WORD, width=95, height=35)
-    campo_texto.pack(padx=10, pady=10, expand=True, fill="both")
-
-    ventana.mainloop()
+    root = tk.Tk()
+    app = ComparadorPDF(root)
+    root.mainloop()
