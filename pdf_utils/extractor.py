@@ -25,34 +25,14 @@ def procesar_precio(texto_precio):
         return None
 
 def extraer_datos_pdf(ruta_pdf):
+    total_presupuesto=0
     productos = []
-    total_presupuesto = 0
-    presupuesto_nro = ""
-    cliente = ""
-    obra = ""
 
     with pdfplumber.open(ruta_pdf) as pdf:
-        # Extraer datos de la primera página (índice 0)
-        texto_primera = pdf.pages[0].extract_text()
-
-        if texto_primera:
-            match_pres = re.search(r"Presupuesto Nro:\s*(\d+)", texto_primera)
-            match_cliente = re.search(r"Sres?\.\s*(.+)", texto_primera)
-            match_obra = re.search(r"Ref\.\s*(.+)", texto_primera)
-
-            if match_pres:
-                presupuesto_nro = match_pres.group(1).strip()
-            if match_cliente:
-                cliente = match_cliente.group(1).strip()
-            if match_obra:
-                obra = match_obra.group(1).strip()
-
-        # Extraer productos desde la segunda página
         for pagina in pdf.pages[1:]:
             texto = pagina.extract_text()
-            if not texto:
-                continue
-
+            
+            # Buscamos líneas con: TIPOVALOR CANTIDAD MEDIDA (ANCHO x ALTO) PRECIO_UNIT TOTAL
             patron = re.compile(
                 r"([A-Z]+\d+)\s+(\d+)\s+(\d+)\s*[xX]\s*(\d+)\s+([\d.,]+)\s+[\d.,]+"
             )
@@ -64,9 +44,9 @@ def extraer_datos_pdf(ruta_pdf):
                 alto = int(match.group(4))
                 precio_unitario = procesar_precio(match.group(5))
                 total_producto = (
-                    precio_unitario * cantidad if precio_unitario and cantidad else None
+                    precio_unitario * cantidad if precio_unitario is not None and cantidad is not None else None
                 )
-                total_presupuesto += total_producto or 0
+                total_presupuesto += total_producto
 
                 productos.append({
                     "tipologia": tipologia,
@@ -75,12 +55,7 @@ def extraer_datos_pdf(ruta_pdf):
                     "alto": alto,
                     "precio_unitario": precio_unitario,
                     "total_producto": total_producto,
+                    "total_presupuesto": total_presupuesto,
                 })
 
-    return {
-        "presupuesto_nro": presupuesto_nro,
-        "cliente": cliente,
-        "obra": obra,
-        "total_presupuesto": total_presupuesto,
-        "productos": productos
-    }
+    return productos
