@@ -4,7 +4,8 @@ import tempfile
 import zipfile
 import requests
 
-REPO_ZIP_URL = "https://github.com/usuario/repositorio/archive/refs/heads/main.zip"  # Cambia esto
+REPO_ZIP_URL = "https://github.com/LucasLautaro12/scrap-pdf/archive/refs/heads/main.zip"  # Cambia esto
+
 NOMBRE_CARPETA_INTERNA = "repositorio-main"  # Carpeta raíz dentro del ZIP
 
 def check_and_update():
