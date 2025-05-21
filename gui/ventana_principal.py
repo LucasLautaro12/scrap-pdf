@@ -226,25 +226,34 @@ class ComparadorPDF:
             self.lbl_diferencia.config(text="DIFERENCIA TOTAL: Esperando archivos...")
             return
 
-        # Crear diccionarios por tipología
         anterior_dict = {p["tipologia"]: p for p in self.productos_anterior}
         actual_dict = {p["tipologia"]: p for p in self.productos_actual}
 
-        # Comparar solo tipologías que están en ambos
         diferencia_total = 0
         for tipologia in actual_dict:
             if tipologia in anterior_dict:
-                total_actual = actual_dict[tipologia].get("total_producto", 0) or 0
-                total_anterior = anterior_dict[tipologia].get("total_producto", 0) or 0
-                diferencia_total += total_actual - total_anterior
+                prod_actual = actual_dict[tipologia]
+                prod_anterior = anterior_dict[tipologia]
 
-        # Mostrar resultado
+                total_actual = prod_actual.get("total_producto", 0) or 0
+                total_anterior = prod_anterior.get("total_producto", 0) or 0
+                diferencia = total_actual - total_anterior
+
+                print(f"Tipología: {tipologia}")
+                print(f"  Actual:   {prod_actual}")
+                print(f"  Anterior: {prod_anterior}")
+                print(f"  Diferencia: {diferencia}")
+                print("-" * 50)
+
+                diferencia_total += diferencia
+
         if diferencia_total > 0:
             texto = f"DIFERENCIA TOTAL: 🔺 El cliente debe pagar ${abs(diferencia_total):,.2f}"
         elif diferencia_total < 0:
             texto = f"DIFERENCIA TOTAL: 🔻 A favor del cliente ${abs(diferencia_total):,.2f}"
         else:
             texto = f"DIFERENCIA TOTAL: ✅ Sin cambios de monto"
+
         self.lbl_diferencia.config(text=texto)
 
     def exportar_excel(self):
