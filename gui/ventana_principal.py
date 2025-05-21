@@ -229,23 +229,25 @@ class ComparadorPDF:
         anterior_dict = {p["tipologia"]: p for p in self.productos_anterior}
         actual_dict = {p["tipologia"]: p for p in self.productos_actual}
 
+        todas_tipologias = set(anterior_dict.keys()) | set(actual_dict.keys())
         diferencia_total = 0
-        for tipologia in actual_dict:
-            if tipologia in anterior_dict:
-                prod_actual = actual_dict[tipologia]
-                prod_anterior = anterior_dict[tipologia]
 
-                total_actual = prod_actual.get("total_producto", 0) or 0
-                total_anterior = prod_anterior.get("total_producto", 0) or 0
-                diferencia = total_actual - total_anterior
+        for tipologia in todas_tipologias:
+            prod_anterior = anterior_dict.get(tipologia)
+            prod_actual = actual_dict.get(tipologia)
 
-                print(f"Tipología: {tipologia}")
-                print(f"  Actual:   {prod_actual}")
-                print(f"  Anterior: {prod_anterior}")
-                print(f"  Diferencia: {diferencia}")
-                print("-" * 50)
+            total_anterior = prod_anterior.get("total_producto", 0) if prod_anterior else 0
+            total_actual = prod_actual.get("total_producto", 0) if prod_actual else 0
 
-                diferencia_total += diferencia
+            diferencia = total_actual - total_anterior
+
+            print(f"Tipología: {tipologia}")
+            print(f"  Actual:   {prod_actual if prod_actual else 'NO EXISTE'}")
+            print(f"  Anterior: {prod_anterior if prod_anterior else 'NO EXISTE'}")
+            print(f"  Diferencia: {diferencia}")
+            print("-" * 50)
+
+            diferencia_total += diferencia
 
         if diferencia_total > 0:
             texto = f"DIFERENCIA TOTAL: 🔺 El cliente debe pagar ${abs(diferencia_total):,.2f}"
