@@ -34,7 +34,7 @@ def extraer_datos_pdf(ruta_pdf):
             
             # Buscamos líneas con: TIPOVALOR CANTIDAD MEDIDA (ANCHO x ALTO) PRECIO_UNIT TOTAL
             patron = re.compile(
-                r"([A-Z]+\d+)\s+(\d+)\s+(\d+)\s*[xX]\s*(\d+)\s+([\d.,]+)\s+[\d.,]+"
+                r"([A-Z0-9]+)\s+(\d+)\s+(\d+)\s*[xX]\s*(\d+)\s+([\d.,]+)\s+[\d.,]+"
             )
 
             for match in patron.finditer(texto):
@@ -55,7 +55,6 @@ def extraer_datos_pdf(ruta_pdf):
                     "alto": alto,
                     "precio_unitario": precio_unitario,
                     "total_producto": total_producto,
-                    "total_presupuesto": total_presupuesto,
                 })
 
     return productos

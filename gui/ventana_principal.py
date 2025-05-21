@@ -205,6 +205,7 @@ class ComparadorPDF:
         if ruta:
             try:
                 self.productos_anterior = extraer_datos_pdf(ruta)
+
                 self.total_anterior = self.tree_anterior.cargar_productos(self.productos_anterior)
             except Exception as e:
                 messagebox.showerror("Error", f"Ocurrió un error con el PDF anterior:\n{str(e)}")
@@ -221,15 +222,27 @@ class ComparadorPDF:
             self.actualizar_diferencia()
 
     def actualizar_diferencia(self):
-        if self.total_anterior == 0 and self.total_actual == 0:
+        if not self.productos_anterior or not self.productos_actual:
             self.lbl_diferencia.config(text="DIFERENCIA TOTAL: Esperando archivos...")
             return
 
-        diferencia = self.total_actual - self.total_anterior
-        if diferencia > 0:
-            texto = f"DIFERENCIA TOTAL: 🔺 El cliente debe pagar ${abs(diferencia):,.2f}"
-        elif diferencia < 0:
-            texto = f"DIFERENCIA TOTAL: 🔻 A favor del cliente ${abs(diferencia):,.2f}"
+        # Crear diccionarios por tipología
+        anterior_dict = {p["tipologia"]: p for p in self.productos_anterior}
+        actual_dict = {p["tipologia"]: p for p in self.productos_actual}
+
+        # Comparar solo tipologías que están en ambos
+        diferencia_total = 0
+        for tipologia in actual_dict:
+            if tipologia in anterior_dict:
+                total_actual = actual_dict[tipologia].get("total_producto", 0) or 0
+                total_anterior = anterior_dict[tipologia].get("total_producto", 0) or 0
+                diferencia_total += total_actual - total_anterior
+
+        # Mostrar resultado
+        if diferencia_total > 0:
+            texto = f"DIFERENCIA TOTAL: 🔺 El cliente debe pagar ${abs(diferencia_total):,.2f}"
+        elif diferencia_total < 0:
+            texto = f"DIFERENCIA TOTAL: 🔻 A favor del cliente ${abs(diferencia_total):,.2f}"
         else:
             texto = f"DIFERENCIA TOTAL: ✅ Sin cambios de monto"
         self.lbl_diferencia.config(text=texto)
