@@ -29,7 +29,7 @@ def extraer_datos_pdf(ruta_pdf):
     productos = []
 
     with pdfplumber.open(ruta_pdf) as pdf:
-        for pagina in pdf.pages[1:]:
+        for pagina in pdf.pages[0:]:
             texto = pagina.extract_text()
             
             # Buscamos líneas con: TIPOVALOR CANTIDAD MEDIDA (ANCHO x ALTO) PRECIO_UNIT TOTAL
